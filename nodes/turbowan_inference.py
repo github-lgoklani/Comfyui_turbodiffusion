@@ -327,7 +327,7 @@ class TurboDiffusionI2VSampler:
         state_shape = [tokenizer.latent_ch, lat_t, lat_h, lat_w]
         init_noise = torch.randn(
             1, *state_shape,
-            dtype=torch.float32,
+            dtype=dtype,
             device=device,
             generator=generator
         )
@@ -394,8 +394,10 @@ class TurboDiffusionI2VSampler:
                     end_step=boundary_step,
                     verbose=True
                 )
+		# --> ADD THIS LINE TO ENSURE DTYPE MATCHES ACROSS MODELS <--
+            x = x.to(dtype=dtype)
         else:
-            x = init_noise
+            x = init_noise.to(dtype=dtype)
 
         # Offload high noise model
         logger.log("Offloading high noise model...")
@@ -476,6 +478,9 @@ class TurboDiffusionI2VSampler:
         # Denormalize from [-1, 1] to [0, 1]
         decoded_frames = (decoded_frames + 1.0) / 2.0
         decoded_frames = decoded_frames.clamp(0, 1)
+
+	# --> CAST TO FLOAT32 FOR COMFYUI-VIDEOHELPERBYTE COMPATIBILITY <--
+        decoded_frames = decoded_frames.to(dtype=torch.float32)
 
         logger.log(f"✓ Successfully generated {decoded_frames.shape[0]} frames!")
         logger.log(f"Total inference time: {logger.elapsed():.2f}s")
