@@ -402,7 +402,10 @@ class TurboDiffusionI2VSampler:
         # Offload high noise model
         logger.log("Offloading high noise model...")
         high_noise_model = high_noise_model.cpu()
-
+        if hasattr(high_noise_model, "_model"):
+            high_noise_model._model = None
+        del high_noise_model
+        
         # Aggressive memory cleanup before loading low noise model
         logger.log("Aggressive VRAM cleanup before loading low noise model...")
         comfy.model_management.soft_empty_cache()
@@ -454,6 +457,14 @@ class TurboDiffusionI2VSampler:
         # Offload low noise model
         logger.log("Offloading low noise model...")
         low_noise_model = low_noise_model.cpu()
+        if hasattr(low_noise_model, "_model"):
+            low_noise_model._model = None
+        del low_noise_model
+
+        logger.log("Aggressive memory cleanup before VAE decode...")
+        import gc
+        gc.collect()
+        comfy.model_management.soft_empty_cache()
         torch.cuda.empty_cache()
 
         # 8. Decode latents with VAE
