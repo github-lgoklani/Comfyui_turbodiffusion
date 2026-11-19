@@ -42,7 +42,7 @@ class LazyModelLoader:
 
     def _ensure_loaded(self):
         """Load model if not already loaded."""
-        if not self._loaded:
+        if not self._loaded or self._model is None:
             from ..utils.timing import timed_print
             start = time.time()
             timed_print(f"⏳ Lazy loading model: {self.model_name}...", start)
@@ -183,7 +183,7 @@ class LazyVAELoader:
 
     def _ensure_loaded(self):
         """Load VAE if not already loaded."""
-        if not self._loaded:
+        if not self._loaded or self._vae is None:
             from ..utils.timing import timed_print
             start = time.time()
             timed_print(f"⏳ Lazy loading VAE: {self.vae_name}...", start)
